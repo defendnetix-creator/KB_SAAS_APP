@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String    @unique
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  isDeleted   Boolean   @default(false)
+  
+  users       User[]
+  articles    Article[]
+  categories  Category[]
+}
+
+model User {
+  id             String       @id @default(uuid())
+  email          String       @unique
+  password       String
+  firstName      String
+  lastName       String
+  role           String       @default("USER") // ADMIN, USER
+  status         String       @default("ACTIVE") // ACTIVE, INACTIVE
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  isDeleted      Boolean      @default(false)
+  
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  
+  articles       Article[]
+}
+
+model Category {
+  id             String       @id @default(uuid())
+  name           String
+  description    String?
+  icon           String?
+  status         String       @default("ACTIVE")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  isDeleted      Boolean      @default(false)
+  
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  
+  articles       Article[]
+}
+
+model Article {
+  id             String       @id @default(uuid())
+  title          String
+  content        String
+  status         String       @default("PUBLISHED") // DRAFT, PUBLISHED, ARCHIVED
+  views          Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  isDeleted      Boolean      @default(false)
+  
+  authorId       String
+  author         User         @relation(fields: [authorId], references: [id])
+  
+  categoryId     String
+  category       Category     @relation(fields: [categoryId], references: [id])
+  
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}
